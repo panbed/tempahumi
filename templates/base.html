@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>im dying,</title>
+    <style>
+        nav a {
+            color: red;
+            font-size: 2em;
+            margin-left: 50px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav style="display: flex; justify-content: space-between;">
+        <div>
+            <a href="{{ url_for('index') }}">raw shi</a>
+            <a href="{{ url_for('chart') }}">cool graph</a>            
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <img src="static/images/ollie.gif" height="32px"/>
+        </div>
+        
+
+    </nav>
+    <hr>
+    <div class="content">
+        {% block content %} {% endblock %}
+    </div>
+</body>
+
+</html>
+
+</html>

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div>
+        <canvas id="climateChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+
+    <script>
+        const ctx = document.getElementById('climateChart')
+
+        let climateInfo = JSON.parse({{ climate_info|tojson }})
+    
+        const labels = climateInfo.map(item => item.timestamp)
+        const tempData = climateInfo.map(item => item.temperature)
+        const humidityData = climateInfo.map(item => item.humidity)
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'tempeatur (°F)',
+                        data: tempData,
+                        yAxisID: 'yTemp',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'hdumity (%)',
+                        data: humidityData,
+                        yAxisID: 'yHumidity',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'da time,'
+                        }
+                    },
+                    yTemp: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'tempeatur (°F)'
+                        }
+                    },
+                    yHumidity: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'hdumity (%)'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        }
+                    }
+                }
+            }
+        })
+    </script>
+{% endblock %}

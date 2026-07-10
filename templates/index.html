@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <table>
+        <caption>temperature and humidity</caption>
+        <thead>
+            <tr>
+                <th scope="col">timestamp</th>
+                <th scope="col">temperatura</th>
+                <th scope="col">hudimity</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for climate in climate_info %}
+            <tr>
+                <th scope="row">{{  climate['timestamp'] }}</th>
+                <td>{{ climate['temperature'] }}</td>
+                <td>{{ climate['humidity'] }}</td>
+            </tr>
+        {% endfor %}    
+        </tbody>
+    </table>
+{% endblock %}
