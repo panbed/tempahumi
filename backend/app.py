@@ -2,8 +2,9 @@ import json
 import os
 from dotenv import load_dotenv
 import sqlite3
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from flask import Flask, render_template
+from flask_caching import Cache
 from apscheduler.schedulers.background import BackgroundScheduler
 import requests
 import populate_weather
@@ -16,6 +17,9 @@ class Config:
 
 app = Flask(__name__)
 app.config.from_object(Config())
+
+# caching for apis so we hopefully dont have to use our disk too much
+cache = Cache(app, config={"CACHE_TYPE": "SimpleCache"})
 
 def get_db_connection() -> sqlite3.Connection:
     db_file = os.getenv("DB_FILE")
@@ -75,6 +79,8 @@ om_scheduler.add_job(
 )
 om_scheduler.start()
 
+# old flask templates endpoints
+"""
 @app.route('/')
 def index():
     conn = get_db_connection()
@@ -92,6 +98,35 @@ def chart():
 
     conn.close()
     return render_template('chart.html', climate_info=climate_json_data, outside_info=outside_json_data)
+"""
+    
+# get climate data from esp32 for one week prior
+@app.route('/climate-info/weekly')
+@cache.cached(timeout=60)
+def climate_info_weekly() -> str:
+    # get current date, and date a week prior (7 days) 
+    current_date: date = date.today()
+    prior_date: date = current_date - timedelta(days=7)
+    sql_date: str = f"'{prior_date.strftime('%Y-%m-%d')}' AND '{current_date.strftime('%Y-%m-%d')}'"
+
+    conn = get_db_connection()
+    climate_info: list = conn.execute(f"SELECT * FROM climate WHERE DATE(timestamp) BETWEEN {sql_date} ORDER BY timestamp DESC LIMIT 10080").fetchall()
+    conn.close()
+
+    climate_json: str = json.dumps([dict(row) for row in climate_info])
+    return climate_json
+
+# get the latest <n> num of rows from the db without looking at dates 
+# (for example, if the esp32 was off for a while.. theres gonna be no data if we use /weekly)
+@app.route('/climate-info/latest')
+@cache.cached(timeout=60)
+def climate_info_latest() -> str:
+    conn = get_db_connection()
+    climate_info: list = conn.execute(f"SELECT * FROM climate ORDER BY timestamp DESC LIMIT 10080").fetchall()
+    conn.close()
+
+    climate_json: str = json.dumps([dict(row) for row in climate_info])
+    return climate_json
 
 def run_app():
     return app
