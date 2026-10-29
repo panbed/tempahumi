@@ -3,46 +3,87 @@
 {% block content %}
     <div>
         <canvas id="climateChart"></canvas>
+        <p>if u dont  know fahremiheight then just divide it by like 2 i think. Thanks!</p>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
     <script>
         const ctx = document.getElementById('climateChart')
 
         let climateInfo = JSON.parse({{ climate_info|tojson }})
-    
-        const labels = climateInfo.map(item => item.timestamp)
-        const tempData = climateInfo.map(item => item.temperature)
-        const humidityData = climateInfo.map(item => item.humidity)
+        let outsideInfo = JSON.parse({{ outside_info|tojson }})
+
+        // sort all da data
+        climateInfo.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+        outsideInfo.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+
+        // manually specify axes cuz we arent using parsing
+        const tempDataset = climateInfo.map(item => ({
+            x: new Date(item.timestamp).valueOf(),
+            y: item.temperature
+        }))
+
+        const humidityDataset = climateInfo.map(item => ({
+            x: new Date(item.timestamp).valueOf(),
+            y: item.humidity
+        }))
+
+        const outsideTempDataset = outsideInfo.map(item => ({
+            x: new Date(item.timestamp).valueOf(),
+            y: item.temperature
+        }))
 
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels,
                 datasets: [
                     {
                         label: 'tempeatur (°F)',
-                        data: tempData,
+                        data: tempDataset,
                         yAxisID: 'yTemp',
                         tension: 0.4
                     },
                     {
                         label: 'hdumity (%)',
-                        data: humidityData,
+                        data: humidityDataset,
                         yAxisID: 'yHumidity',
                         tension: 0.4
+                    },
+                    {
+                        label: 'outiside weather (°F)',
+                        data: outsideTempDataset,
+                        yAxisID: 'yTemp',
+                        tension: 0.4,
+			hidden: true
                     }
                 ]
             },
             options: {
+                animation: false,
+                parsing: false,
+                plugins: {
+                    decimation: {
+                        enabled: true,
+                        algorithm: 'lttb',
+                        samples: 1500
+                    }
+                },
                 responsive: true,
                 interaction: {
-                    mode: 'index',
+                    mode: 'x',
                     intersect: false,
                 },
                 scales: {
                     x: {
+                        type: 'time',
+                        time: {
+                            unit: 'hour',
+                            displayFormats: {
+                                hour: 'MMM dd, hh:mm a'
+                            }
+                        },
                         title: {
                             display: true,
                             text: 'da time,'
