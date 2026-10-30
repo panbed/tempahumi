@@ -1,0 +1,14 @@
+.info-anim, .info-text {
+  font-family: "Xanh Mono", monospace;
+}
+
+.info-anim {
+  font-size: xx-large;
+}
+
+.info-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
