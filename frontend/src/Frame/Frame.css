@@ -6,7 +6,7 @@ old unix work station, like old solaris or something */
   height: 75vh;
   border: 1px solid black;
 
-  background-color: #fef;
+  background-color: #fff;
 }
 
 #navbar {
@@ -29,4 +29,11 @@ old unix work station, like old solaris or something */
 
 #content {
   height: 100%;
+}
+
+@media (max-width: 992px) or (orientation: portrait) {
+  #frame {
+    width: 90vw;
+    height: 90vh;
+  }
 }

@@ -7,10 +7,16 @@ import {
   Legend,
   LinearScale,
   LineElement,
+  LineController,
   PointElement,
   Title,
   Tooltip,
+  TimeScale,
+  Colors,
+  type ChartOptions
 } from 'chart.js'
+
+import 'chartjs-adapter-date-fns'
 
 import TextSpinner from '../Utils/TextSpinner'
 import BlinkingError from '../Utils/BlinkingError'
@@ -21,69 +27,93 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  LineController,
+  TimeScale,
   Title,
   Tooltip,
   Legend,
-  Decimation
+  Decimation,
+  Colors,
 )
 
-export const options = {
+// interfaces for chart data (each chart needs the DatasetInterface elements)
+interface DatasetInterface {
+  label: string,
+  data: any,
+  yAxisID: string,
+  tension: number
+}
+
+interface DataInterface {
+  datasets: DatasetInterface[]
+}
+
+interface ClimateInfoInterface {
+  humidity: number,
+  id: number,
+  temperature: number,
+  timestamp: string
+}
+
+// options for line chart
+export const options: ChartOptions<'line'> = {
+  animation: false,
+  parsing: false,
   plugins: {
-    animation: false,
-    parsing: false,
-    plugins: {
-      decimation: {
-        enabled: true,
-        algorithm: 'lttb',
-        samples: 1500
+    decimation: {
+      enabled: true,
+      algorithm: 'lttb',
+      samples: 1500
+    }
+  },
+  responsive: true,
+  interaction: {
+    mode: 'x',
+    intersect: false
+  },
+  maintainAspectRatio : false,
+  scales: {
+    x: {
+      type: 'time',
+      time: {
+        unit: 'hour',
+        displayFormats: {
+          hour: 'MMM dd, hh:mm a'
+        }
+      },
+      title: {
+        display: true,
+        text: 'da time,'
       }
     },
-    responsive: true,
-    interaction: {
-      mode: 'x',
-      intersect: false,
+    yTemp: {
+      type: 'linear',
+      display: true,
+      position: 'left',
+      title: {
+        display: true,
+        text: 'tempeatur (°F)'
+      }
     },
-    scales: {
-      x: {
-        type: 'time',
-        time: {
-          unit: 'hour',
-          displayFormats: {
-            hour: 'MMM dd, hh:mm a'
-          }
-        },
-        title: {
-          display: true,
-          text: 'da time,'
-        }
-      },
-      yTemp: {
-        type: 'linear',
+    yHumidity: {
+      type: 'linear',
+      display: true,
+      position: 'right',
+      title: {
         display: true,
-        position: 'left',
-        title: {
-          display: true,
-          text: 'tempeatur (°F)'
-        }
+        text: 'hdumity (%)'
       },
-      yHumidity: {
-        type: 'linear',
-        display: true,
-        position: 'right',
-        title: {
-          display: true,
-          text: 'hdumity (%)'
-        },
-        grid: {
-          drawOnChartArea: false,
-        }
+      grid: {
+        drawOnChartArea: false,
       }
     }
   }
 }
 
 export default function Chart() {
-  const [climateData, setClimateData] = useState([]) // json w/ climate data
+  const [climateData, setClimateData] = useState<DataInterface>({
+    datasets: [],
+  }) // json w/ climate data
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -95,24 +125,24 @@ export default function Chart() {
         // fetch data from backend, get the JSON and then set climateData to the JSON
         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/climate-info/latest`)
         const responseData = await response.json()
-        
 
         // sort the climate data by timestamp so we dont get data that goes backwards in time
-        responseData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-
-        console.log(responseData)
-
-        const temperatureDataset = responseData.map(item => ({
+        responseData.sort((a: ClimateInfoInterface, b: ClimateInfoInterface) => {
+          return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        })
+        
+        // create the temperature/humidity datasets 
+        const temperatureDataset = responseData.map((item: ClimateInfoInterface) => ({
           x: new Date(item.timestamp).valueOf(),
           y: item.temperature
         }))
 
-        const humidityDataset = responseData.map(item => ({
+        const humidityDataset = responseData.map((item: ClimateInfoInterface) => ({
           x: new Date(item.timestamp).valueOf(),
           y: item.humidity
         }))
 
-        let data = {
+        let data: DataInterface = {
           datasets: [
             {
               label: 'tempeatur (°F)',
@@ -166,8 +196,8 @@ export default function Chart() {
 
   return (
     <>
-      <div>
-        <Line options={options} data={climateData}/>
+      <div id='line-chart'>
+        <Line options={options} data={climateData} />
       </div>
     </>
   )
