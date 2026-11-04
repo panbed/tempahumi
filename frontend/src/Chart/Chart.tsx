@@ -20,6 +20,9 @@ import 'chartjs-adapter-date-fns'
 
 import TextSpinner from '../Utils/TextSpinner'
 import BlinkingError from '../Utils/BlinkingError'
+
+import type { ClimateInfoInterface } from '../Utils/ClimateInfo'
+
 import { Line } from 'react-chartjs-2'
 
 ChartJS.register(
@@ -46,13 +49,6 @@ interface DatasetInterface {
 
 interface DataInterface {
   datasets: DatasetInterface[]
-}
-
-interface ClimateInfoInterface {
-  humidity: number,
-  id: number,
-  temperature: number,
-  timestamp: string
 }
 
 // options for line chart

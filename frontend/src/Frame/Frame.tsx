@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router'
+import { Link, Outlet } from 'react-router'
 import './Frame.css'
 
 export default function Frame() {
@@ -6,8 +6,8 @@ export default function Frame() {
     <>
       <nav id='navbar'>
         <ul>
-          <li>chart</li>
-          <li>table</li>
+          <li><Link to='/'>chart</Link></li>
+          <li><Link to='/raw'>table</Link></li>
         </ul>
       </nav>
       <div id='frame'>
