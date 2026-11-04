@@ -5,6 +5,7 @@ import sqlite3
 from datetime import datetime, date, timedelta
 from flask import Flask, render_template
 from flask_caching import Cache
+from flask_cors import CORS
 from apscheduler.schedulers.background import BackgroundScheduler
 import requests
 import populate_weather
@@ -17,6 +18,8 @@ class Config:
 
 app = Flask(__name__)
 app.config.from_object(Config())
+
+CORS(app) # cors handling so frontend can access the backend
 
 # caching for apis so we hopefully dont have to use our disk too much
 cache = Cache(app, config={"CACHE_TYPE": "SimpleCache"})
@@ -78,27 +81,6 @@ om_scheduler.add_job(
     next_run_time=datetime.now()
 )
 om_scheduler.start()
-
-# old flask templates endpoints
-"""
-@app.route('/')
-def index():
-    conn = get_db_connection()
-    climate_info = conn.execute('SELECT * FROM climate ORDER BY timestamp DESC LIMIT 10080').fetchall()
-    conn.close()
-    return render_template('index.html', climate_info=climate_info)
-
-@app.route('/chart')
-def chart():
-    conn = get_db_connection()
-    climate_info = conn.execute('SELECT * FROM climate ORDER BY timestamp DESC LIMIT 10080').fetchall()
-    outside_info = conn.execute('SELECT * FROM outside_weather ORDER BY timestamp DESC LIMIT 10080').fetchall()
-    climate_json_data = json.dumps([dict(row) for row in climate_info])
-    outside_json_data = json.dumps([dict(row) for row in outside_info])
-
-    conn.close()
-    return render_template('chart.html', climate_info=climate_json_data, outside_info=outside_json_data)
-"""
     
 # get climate data from esp32 for one week prior
 @app.route('/climate-info/weekly')
